@@ -56,28 +56,6 @@ class Database {
 
 // Helper functions for common database operations
 
-function createUser($email, $password, $name) {
-    $db = Database::getInstance();
-    $password_hash = password_hash($password, PASSWORD_DEFAULT);
-    
-    return $db->insert(
-        'INSERT INTO users (email, password_hash, name) VALUES (:email, :password_hash, :name)',
-        [
-            ':email' => $email,
-            ':password_hash' => $password_hash,
-            ':name' => $name
-        ]
-    );
-}
-
-function getUserByEmail($email) {
-    $db = Database::getInstance();
-    return $db->querySingle(
-        'SELECT * FROM users WHERE email = :email',
-        [':email' => $email]
-    );
-}
-
 function createFamilyGroup($name, $admin_id) {
     $db = Database::getInstance();
     return $db->insert(

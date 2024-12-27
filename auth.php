@@ -70,3 +70,55 @@ function validateCsrfToken($token) {
         die('Invalid CSRF token');
     }
 }
+
+function validateName($name) {
+    return !empty($name) && preg_match('/^[a-zA-Z\s]+$/', $name);
+}
+
+function validateEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+
+function validatePassword($password) {
+    return preg_match('/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/', $password);
+}
+
+function getUserByEmail($email) {
+    $db = Database::getInstance();
+    return $db->querySingle(
+        'SELECT * FROM users WHERE email = :email',
+        [':email' => $email]
+    );
+}
+
+function createUser($name, $email, $password, $password_confirm) {
+    if (!validateName($name)) {
+        return false;
+    }
+    
+    if (!validateEmail($email)) {
+        return false;
+    }
+    
+    if (!validatePassword($password)) {
+        return false;
+    }
+    
+    if ($password !== $password_confirm) {
+        return false;
+    }
+    
+    if (getUserByEmail($email)) {
+        return false; // Email already exists
+    }
+    
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+    
+    $db = Database::getInstance();
+    $db->query(
+        'INSERT INTO users (name, email, password_hash) VALUES (:name, :email, :password_hash)',
+        [':name' => $name, ':email' => $email, ':password_hash' => $password_hash]
+    );
+    
+    return true;
+}
