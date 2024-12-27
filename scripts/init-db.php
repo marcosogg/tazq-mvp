@@ -32,6 +32,7 @@ try {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             admin_id INTEGER NOT NULL,
+            invite_code TEXT UNIQUE,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (admin_id) REFERENCES users(id)
         )

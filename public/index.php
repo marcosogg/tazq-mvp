@@ -74,7 +74,151 @@ if (strpos($uri, '/api/') === 0) {
             }
             exit;
             
-        // Add more API routes here
+        case '/api/groups/create':
+            if ($method !== 'POST') break;
+            
+            // Validate CSRF token
+            validateCsrfToken($_POST['csrf_token'] ?? '');
+            
+            $name = trim($_POST['name'] ?? '');
+            if (empty($name)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Group name is required']);
+                exit;
+            }
+            
+            $group_id = createFamilyGroup($name, $_SESSION['user_id']);
+            if ($group_id) {
+                echo json_encode([
+                    'success' => true,
+                    'group' => [
+                        'id' => $group_id,
+                        'name' => $name,
+                        'is_admin' => true,
+                        'member_count' => 1
+                    ],
+                    'invite_link' => "/invite/$invite_code"
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to create group']);
+            }
+            exit;
+    
+        case '/api/groups':
+            if ($method !== 'GET') break;
+            $groups = getUserGroups($_SESSION['user_id']);
+            echo json_encode([
+                'success' => true,
+                'groups' => $groups
+            ]);
+            exit;
+    
+        case (preg_match('/^\/api\/groups\/([^\/]+)\/join$/', $uri, $matches) ? true : false):
+            if ($method !== 'POST') break;
+            
+            validateCsrfToken($_POST['csrf_token'] ?? '');
+            
+            $invite_code = $matches[1];
+            $group = getGroupByInviteCode($invite_code);
+            
+            if (!$group) {
+                http_response_code(404);
+                echo json_encode(['error' => 'Invalid invite code']);
+                exit;
+            }
+            
+            if (isGroupMember($group['id'], $_SESSION['user_id'])) {
+                http_response_code(400);
+                echo json_encode(['error' => 'You are already a member of this group']);
+                exit;
+            }
+            
+            if (joinGroup($group['id'], $_SESSION['user_id'])) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Successfully joined the group',
+                    'redirect' => '/group/' . $group['id']
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to join group']);
+            }
+            exit;
+            
+        case '/api/tasks':
+            if ($method !== 'GET') break;
+            
+            $group_id = $_SESSION['active_group_id'] ?? null;
+            if (!$group_id) {
+                http_response_code(400);
+                echo json_encode(['error' => 'No active group selected']);
+                exit;
+            }
+            
+            $assignee = $_GET['assignee'] ?? null;
+            $status = $_GET['status'] ?? null;
+            
+            $tasks = getGroupTasks($group_id, $assignee, $status);
+            echo json_encode(['success' => true, 'tasks' => $tasks]);
+            exit;
+    
+        case '/api/tasks/create':
+            if ($method !== 'POST') break;
+            
+            validateCsrfToken($_POST['csrf_token'] ?? '');
+            
+            $group_id = $_SESSION['active_group_id'] ?? null;
+            if (!$group_id) {
+                http_response_code(400);
+                echo json_encode(['error' => 'No active group selected']);
+                exit;
+            }
+            
+            $title = trim($_POST['title'] ?? '');
+            if (empty($title)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Task title is required']);
+                exit;
+            }
+            
+            $task_id = createTask(
+                $title,
+                $_POST['description'] ?? null,
+                $_POST['due_date'] ?? null,
+                $group_id,
+                $_POST['assigned_to'] ?? null
+            );
+            
+            if ($task_id) {
+                echo json_encode(['success' => true, 'task_id' => $task_id]);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to create task']);
+            }
+            exit;
+    
+        case (preg_match('/^\/api\/tasks\/(\d+)\/toggle$/', $uri, $matches) ? true : false):
+            if ($method !== 'POST') break;
+            
+            validateCsrfToken($_POST['csrf_token'] ?? '');
+            
+            $task_id = (int)$matches[1];
+            $completed = isset($_POST['completed']) && $_POST['completed'] === 'true';
+            
+            if (!canAccessTask($task_id, $_SESSION['user_id'])) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Access denied']);
+                exit;
+            }
+            
+            if (toggleTaskStatus($task_id, $completed)) {
+                echo json_encode(['success' => true]);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to update task']);
+            }
+            exit;
     }
     
     // If no API route matched, return 404
