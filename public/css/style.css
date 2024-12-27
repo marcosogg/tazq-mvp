@@ -213,3 +213,32 @@ body {
         gap: 0.25rem;
     }
 }
+
+/* Group invite styles */
+.group-preview {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.group-preview h2 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}

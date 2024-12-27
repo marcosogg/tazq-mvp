@@ -64,9 +64,19 @@ function generateCsrfToken() {
     return $_SESSION['csrf_token'];
 }
 
-function validateCsrfToken($token) {
+function validateCsrfToken($token = null) {
+    // Check token from POST data
+    $post_token = $_POST['csrf_token'] ?? '';
+    // Check token from header
+    $header_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    // Use provided token or check both POST and header tokens
+    $token = $token ?? $post_token ?? $header_token;
+
     if (!isset($_SESSION['csrf_token']) || $token !== $_SESSION['csrf_token']) {
         http_response_code(403);
+        if ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '' === 'XMLHttpRequest') {
+            die(json_encode(['error' => 'Invalid CSRF token']));
+        }
         die('Invalid CSRF token');
     }
 }

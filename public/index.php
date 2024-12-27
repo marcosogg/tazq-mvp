@@ -1,4 +1,31 @@
 <?php
+// Set the document root as one level up
+define('APP_ROOT', dirname(__DIR__));
+
+// Handle static files
+$request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$file_path = __DIR__ . $request_uri;
+
+// If the file exists and is in allowed directories (js, css, images)
+if (is_file($file_path) && preg_match('/\.(js|css|png|jpg|jpeg|gif|ico)$/', $file_path)) {
+    $extension = pathinfo($file_path, PATHINFO_EXTENSION);
+    $mime_types = [
+        'js' => 'application/javascript',
+        'css' => 'text/css',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'ico' => 'image/x-icon'
+    ];
+    
+    if (isset($mime_types[$extension])) {
+        header('Content-Type: ' . $mime_types[$extension]);
+        readfile($file_path);
+        exit;
+    }
+}
+
 // Session configuration - MUST be before session_start()
 ini_set('session.cookie_httponly', 1);
 ini_set('session.cookie_secure', 1);
@@ -10,12 +37,16 @@ if (php_sapi_name() === 'cli-server') {
     ini_set('session.cookie_secure', 0);
 }
 
-require_once __DIR__ . '/../config.php';
-session_start();
+require_once APP_ROOT . '/config.php';
+require_once APP_ROOT . '/db.php';
+require_once APP_ROOT . '/auth.php';
+
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Include helper files
-require_once __DIR__ . '/../auth.php';
-require_once __DIR__ . '/../db.php';
 
 // Rest of the routing code remains the same...
 

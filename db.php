@@ -136,13 +136,24 @@ function joinGroup($group_id, $user_id) {
     
     $db = Database::getInstance();
     try {
+        $db->beginTransaction();
+        
+        // Add user to group
         $db->query(
             'INSERT INTO family_group_members (family_group_id, user_id) 
              VALUES (:group_id, :user_id)',
             [':group_id' => $group_id, ':user_id' => $user_id]
         );
+        
+        // Set as active group in session if user has no active group
+        if (!isset($_SESSION['active_group_id'])) {
+            $_SESSION['active_group_id'] = $group_id;
+        }
+        
+        $db->commit();
         return true;
     } catch (Exception $e) {
+        $db->rollback();
         return false;
     }
 }

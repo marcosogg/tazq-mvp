@@ -23,12 +23,15 @@ require_once __DIR__ . '/partials/header.php';
     </form>
 
     <!-- Invite Link Display (hidden by default) -->
+    <!-- Update the invite link container section -->
     <div id="inviteLinkContainer" class="form-group" style="display: none;">
-        <label>Invite Link</label>
+        <h3>Invite Family Members</h3>
+        <p>Share this link to invite people to your family group:</p>
         <div class="input-group">
             <input type="text" id="inviteLink" class="form-control" readonly>
-            <button class="btn" onclick="copyInviteLink()">Copy</button>
+            <button class="btn" onclick="copyInviteLink()">Copy Link</button>
         </div>
+        <small>Anyone with this link can join your family group.</small>
     </div>
 
     <!-- Groups List -->

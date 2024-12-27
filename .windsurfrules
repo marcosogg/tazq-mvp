@@ -1,0 +1,26 @@
+# Technical Requirements
+
+## Backend Architecture
+1. PHP Implementation
+   - Single entry point (index.php)
+   - Simple routing system
+   - No frameworks
+
+2. Database Structure
+   - SQLite implementation
+   - 5 core tables (users, family_groups, family_group_members, tasks, task_comments)
+   - Prepared statements
+   - Optimized for <100 users
+
+## Frontend Implementation
+1. JavaScript
+   - jQuery for AJAX calls
+   - DOM manipulation
+   - Single app.js file
+   - Minimal page reloads
+
+2. CSS
+   - Single style.css file
+   - No frameworks
+   - Mobile-first design
+   - Responsive breakpoints
